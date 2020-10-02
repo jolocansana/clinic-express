@@ -106,6 +106,7 @@ export default {
         default:
           $('#uploadError').text('Wrong File Extension');
       }
+      $('#uploadForm').val('');
     },
     async deleteFile(id) {
       await FileService.deleteFile(id);
