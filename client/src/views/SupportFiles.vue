@@ -30,7 +30,8 @@
               <div class="card-body">
                 <h4 class="card-title">Upload File</h4>
                   <input type="file" class='form-control-file my-auto' id="uploadForm" accept="image/*">
-                  <button class='btn btn-success' @click="uploadFile"> + Upload File </button>
+                  <button class='btn btn-success' @click="uploadFile"> Upload File </button> <br/>
+                  <span class='text-danger' id='uploadError'></span>
               </div>
             </div>
         </div>
@@ -42,6 +43,7 @@
 <script>
 /* eslint-env jquery */
 import Sidebar from '@/components/Sidebar.vue';
+import $ from 'jquery';
 import moment from 'moment';
 import VisitService from '../VisitService';
 import PatientService from '../PatientService';
@@ -87,11 +89,23 @@ export default {
         this.files = null;
       });
     },
-    async uploadFile() {
+    uploadFile() {
       const file = $('#uploadForm').prop('files')[0];
-
-      await FileService.addFile(this.visit_id, file);
-      this.loadFiles();
+      const ext = $('#uploadForm').val().split('.').pop()
+                  .toLowerCase();
+      console.log(ext);
+      switch (ext) {
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+          FileService.addFile(this.visit_id, file).then(() => {
+            this.loadFiles();
+            $('#uploadError').text('');
+          });
+          break;
+        default:
+          $('#uploadError').text('Wrong File Extension');
+      }
     },
     async deleteFile(id) {
       await FileService.deleteFile(id);
