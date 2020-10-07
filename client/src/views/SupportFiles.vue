@@ -2,7 +2,24 @@
   <div class="visit">
     <div class="row">
       <Sidebar :name='patient.name' :links='links'/>
-      <div id="content" class='col-10'>
+      <div id="content" class='col-12 col-md-10'>
+        <nav class="navbar navbar-expand-lg navbar-light mb-3 d-block d-md-none">
+          <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02"
+                  aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <a class="navbar-brand ml-4"><strong>{{patient.name}}</strong></a>
+
+          <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+            <ul class="navbar-nav mr-auto mt-2 mt-md-0">
+              <li class="nav-item">
+                <a class="nav-link" :href="'/patients/visits/'+this.patient_id+ '/' +this.visit_id">SOAP</a>
+                <a class="nav-link" href="" v-on:click="logout()">Logout</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="/">Home</a></li>
           <li class="breadcrumb-item" aria-current="page">
@@ -19,8 +36,8 @@
           </div>
           <div class='w-100 px-3'>
             <div class="row mt-2 round-border" v-for='file in files' :key='file.filename'>
-              <div class="col-9"><button class='btn w-100 text-left' @click="showFile(file)">{{file.filename}}</button></div>
-              <div class="col-3"><button class='btn btn-danger float-right' @click="deleteFile(file._id)">Delete</button></div>
+              <div class="col-12 col-md-9"><button class='btn w-100 text-left' @click="showFile(file)">{{file.filename}}</button></div>
+              <div class="col-12 col-md-3"><button class='btn btn-danger float-right' @click="deleteFile(file._id)">Delete</button></div>
             </div>
           </div>
           <div v-if="files.length == 0">
@@ -30,7 +47,8 @@
               <div class="card-body">
                 <h4 class="card-title">Upload File</h4>
                   <input type="file" class='form-control-file my-auto' id="uploadForm" accept="image/*">
-                  <button class='btn btn-success' @click="uploadFile"> + Upload File </button>
+                  <button class='btn btn-success' @click="uploadFile"> Upload File </button> <br/>
+                  <span class='text-danger' id='uploadError'></span>
               </div>
             </div>
         </div>
@@ -42,6 +60,7 @@
 <script>
 /* eslint-env jquery */
 import Sidebar from '@/components/Sidebar.vue';
+import $ from 'jquery';
 import moment from 'moment';
 import VisitService from '../VisitService';
 import PatientService from '../PatientService';
@@ -87,11 +106,24 @@ export default {
         this.files = null;
       });
     },
-    async uploadFile() {
+    uploadFile() {
       const file = $('#uploadForm').prop('files')[0];
-
-      await FileService.addFile(this.visit_id, file);
-      this.loadFiles();
+      const ext = $('#uploadForm').val().split('.').pop()
+                  .toLowerCase();
+      console.log(ext);
+      switch (ext) {
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+          FileService.addFile(this.visit_id, file).then(() => {
+            this.loadFiles();
+            $('#uploadError').text('');
+          });
+          break;
+        default:
+          $('#uploadError').text('Wrong File Extension');
+      }
+      $('#uploadForm').val('');
     },
     async deleteFile(id) {
       await FileService.deleteFile(id);
